@@ -18,4 +18,8 @@ The broker requires the following environment variables to be provided.
 - `AWS_SECRET_KEY`, the secret key this broker instance uses to request services from AWS.
 - `AWS_REGION`, the region in which s3 buckets will be created.
 
+## Optional Configuration
 
+The broker accepts the following optional configuration
+
+- `BUCKET_NAME_PREFIX`, the prefix applied to the s3 bucket name. Defaults to `cloud-foundry-`
