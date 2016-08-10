@@ -18,7 +18,7 @@ import (
 func mustEnv(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
-		log.Fatal("%q must be set", key)
+		log.Fatalf("%q must be set", key)
 	}
 	return val
 }

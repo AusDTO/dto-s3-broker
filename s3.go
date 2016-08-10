@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/pkg/errors"
 )
@@ -17,30 +16,31 @@ type S3Broker struct {
 
 func (b *S3Broker) Provision(instanceid, serviceid, planid string) error {
 	bucket := bucketNameFromInstanceId(instanceid)
+	if err := b.createBucket(bucket); err != nil {
+		return err
+	}
+	fmt.Printf("Creating service instance %s for service %s plan %s\n", instanceid, serviceid, planid)
+	return nil
+}
+
+func (b *S3Broker) createBucket(name string) error {
 	svc := s3.New(session.New(&b.Config))
-	_, err := svc.CreateBucket(&s3.CreateBucketInput{
-		Bucket: aws.String(bucket),
+	params := &s3.CreateBucketInput{
+		Bucket: aws.String(name),
 		CreateBucketConfiguration: &s3.CreateBucketConfiguration{
 			LocationConstraint: b.Config.Region,
 		},
-	})
-	if err != nil {
-		return errors.Wrapf(err, "couldn't create s3 bucket: %q", instanceid)
 	}
 
-	if err := svc.WaitUntilBucketExists(&s3.HeadBucketInput{Bucket: aws.String(bucket)}); err != nil {
-		return errors.Wrapf(err, "failed to wait for bucket to exist %q", bucket)
+	if _, err := svc.CreateBucket(params); err != nil {
+		return errors.Wrapf(err, "couldn't create s3 bucket: %q", name)
+	}
+
+	if err := svc.WaitUntilBucketExists(&s3.HeadBucketInput{Bucket: aws.String(name)}); err != nil {
+		return errors.Wrapf(err, "failed to wait for bucket to exist %q", name)
 	}
 
 	// TODO(dfc) tag bucket with service data
-
-	params := &iam.CreateGroupInput{
-		GroupName: aws.String(envOr("GROUP_PATH", "/cloud-foundry/s3/")),
-		Path:      aws.String(envOr("USER_PATH", "/cloud-foundry/s3/")),
-	}
-	resp, err := svc.CreateGroup(params)
-
-	fmt.Printf("Creating service instance %s for service %s plan %s\n", instanceid, serviceid, planid)
 	return nil
 }
 
