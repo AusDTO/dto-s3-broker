@@ -1,0 +1,10 @@
+---
+applications:
+- name: dto-s3-broker
+  command: dto-s3-broker
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git
+  memory: 256M
+  env:
+    GOVERSION: go1.6
+    GOPACKAGENAME: github.com/AusDTO/dto-s3-broker
+    AWS_REGION: ap-southeast-2
