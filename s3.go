@@ -50,16 +50,20 @@ func bucketNameFromInstanceId(instanceid string) string {
 
 func (b *S3Broker) Deprovision(instanceid, serviceid, planid string) error {
 	bucket := bucketNameFromInstanceId(instanceid)
-	svc := s3.New(session.New(&b.Config))
-	params := &s3.DeleteBucketInput{
-		Bucket: aws.String(bucket),
-	}
-	_, err := svc.DeleteBucket(params)
-	if err != nil {
-		return errors.Wrapf(err, "failed to remove bucket %q", bucket)
+	if err := b.destroyBucket(bucket); err != nil {
+		return err
 	}
 	fmt.Printf("Deleting service instance %s for service %s plan %s\n", instanceid, serviceid, planid)
 	return nil
+}
+
+func (b *S3Broker) destroyBucket(name string) error {
+	svc := s3.New(session.New(&b.Config))
+	params := &s3.DeleteBucketInput{
+		Bucket: aws.String(name),
+	}
+	_, err := svc.DeleteBucket(params)
+	return errors.Wrapf(err, "failed to remove bucket %q", name)
 }
 
 func (b *S3Broker) Bind(instanceid, bindingid, serviceid, planid string) error {
