@@ -12,6 +12,7 @@ import (
 	"github.com/cloudfoundry-community/go-cfenv"
 
 	"github.com/AusDTO/dto-s3-broker/internal/broker"
+	"github.com/AusDTO/dto-s3-broker/internal/s3"
 	"github.com/cloudfoundry-community/types-cf"
 )
 
@@ -19,6 +20,14 @@ func mustEnv(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
 		log.Fatalf("%q must be set", key)
+	}
+	return val
+}
+
+func envOr(key, def string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return def
 	}
 	return val
 }
@@ -50,7 +59,7 @@ func main() {
 		}},
 	}
 
-	b := S3Broker{
+	b := s3.S3Broker{
 		Config: aws.Config{
 			Region: aws.String(mustEnv("AWS_REGION")),
 			Credentials: credentials.NewStaticCredentials(
